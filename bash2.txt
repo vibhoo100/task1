@@ -1,0 +1,147 @@
+#!/bin/bash
+
+# internsctl - Custom Linux Command for Interns
+# Version: v0.2.0
+
+display_help() {
+    echo "Usage: internsctl [COMMAND] [OPTIONS]"
+    echo "Custom Linux Command for Interns"
+    echo ""
+    echo "Commands:"
+    echo "  cpu getinfo              Display CPU information (similar to lscpu)"
+    echo "  memory getinfo           Display Memory information (similar to free)"
+    echo "  user create <username>   Create a new user with login access"
+    echo "  user list                List all regular users"
+    echo "  user list --sudo-only    List users with sudo permissions"
+    echo "  file getinfo [OPTIONS]   Get information about a file"
+    echo ""
+    echo "Options:"
+    echo "  --help     Display this help message"
+    echo "  --version  Display the command version"
+    echo ""
+    echo "File Getinfo Options:"
+    echo "  --size, -s            Print file size"
+    echo "  --permissions, -p    Print file permissions"
+    echo "  --owner, -o          Print file owner"
+    echo "  --last-modified, -m  Print last modified time"
+    echo ""
+    echo "Examples:"
+    echo "  internsctl cpu getinfo"
+    echo "  internsctl memory getinfo"
+    echo "  internsctl user create newuser"
+    echo "  internsctl user list"
+    echo "  internsctl user list --sudo-only"
+    echo "  internsctl file getinfo hello.txt"
+    echo "  internsctl file getinfo --size hello.txt"
+    echo "  internsctl file getinfo --permissions hello.txt"
+    echo "  internsctl file getinfo --owner hello.txt"
+    echo "  internsctl file getinfo --last-modified hello.txt"
+}
+
+display_version() {
+    echo "internsctl v0.2.0"
+}
+
+cpu_getinfo() {
+    lscpu
+}
+
+memory_getinfo() {
+    free
+}
+
+user_create() {
+    if [ $# -ne 2 ]; then
+        echo "Error: Missing username. Usage: internsctl user create <username>"
+        exit 1
+    fi
+
+    username=$2
+    adduser "$username"
+}
+
+user_list() {
+    if [ "$1" = "--sudo-only" ]; then
+        getent passwd {1000..60000} | cut -d: -f1,4 | awk -F: '$2 ~ /sudo/'
+    else
+        getent passwd {1000..60000} | cut -d: -f1
+    fi
+}
+
+file_getinfo() {
+    if [ $# -lt 2 ]; then
+        echo "Error: Missing file name. Usage: internsctl file getinfo [options] <file-name>"
+        exit 1
+    fi
+
+    file=$2
+    options=$3
+
+    if [ -z "$options" ]; then
+        ls -l "$file"
+    else
+        case "$options" in
+            --size|-s)
+                stat --printf="%s\n" "$file"
+                ;;
+            --permissions|-p)
+                stat --printf="%A\n" "$file"
+                ;;
+            --owner|-o)
+                stat --printf="%U\n" "$file"
+                ;;
+            --last-modified|-m)
+                stat --printf="%y\n" "$file"
+                ;;
+            *)
+                echo "Error: Unknown option for file getinfo. Use 'internsctl file getinfo --help' for usage."
+                exit 1
+                ;;
+        esac
+    fi
+}
+
+
+if [ $# -eq 0 ]; then
+    echo "Error: Missing arguments. Use 'internsctl --help' for usage."
+    exit 1
+fi
+
+
+case "$1" in
+    cpu)
+        cpu_getinfo
+        ;;
+    memory)
+        memory_getinfo
+        ;;
+    user)
+        case "$2" in
+            create)
+                user_create "$@"
+                ;;
+            list)
+                user_list "${@:3}"
+                ;;
+            *)
+                echo "Error: Unknown user command. Use 'internsctl user --help' for usage."
+                exit 1
+                ;;
+        esac
+        ;;
+    file)
+        file_getinfo "$@"
+        ;;
+    --help)
+        display_help
+        ;;
+    --version)
+        display_version
+        ;;
+    *)
+        echo "Error: Unknown command. Use 'internsctl --help' for usage."
+        exit 1
+        ;;
+esac
+
+exit 0

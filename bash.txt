@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# internsctl - Custom Linux Command for Interns
+# Version: v0.1.0
+
+
+display_help() {
+    echo "Usage: internsctl [OPTIONS]"
+    echo "Custom Linux Command for Interns"
+    echo ""
+    echo "Options:"
+    echo "  --help     Display this help message"
+    echo "  --version  Display the command version"
+    echo ""
+    echo "Examples:"
+    echo "  internsctl --help"
+    echo "  internsctl --version"
+    echo ""
+}
+
+
+display_version() {
+    echo "internsctl v0.1.0"
+}
+
+
+if [ $# -eq 0 ]; then
+    echo "Error: Missing arguments. Use 'internsctl --help' for usage."
+    exit 1
+fi
+
+
+case "$1" in
+    --help)
+        display_help
+        ;;
+    --version)
+        display_version
+        ;;
+    *)
+        echo "Error: Unknown option. Use 'internsctl --help' for usage."
+        exit 1
+        ;;
+esac
+
+exit 0
